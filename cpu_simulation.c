@@ -8,7 +8,6 @@
 #define DEAD -2
 #define EMPTY 0
 
-void printMatrix(int **matrix, int N, int M);
 int hasContaminatingNeighbor(int **matrix, int i, int j, int N, int M);
 
 int main(int argc, char **argv)
@@ -68,17 +67,67 @@ int main(int argc, char **argv)
                 }
                 else if(current = INFECTED)
                 {
+                    int probability = rand() %  10000; 
 
+                    if(probability <= 999) next[i][j] = HEALTH; // curado
+                    else if(probability <= 3999) next[i][j] = INFECTED; // continua infectado
+                    else next[i][j] = DEAD; // morreu
+                    flag = 1;
                 }
+                else if(current == DEAD)
+                {
+                    next[i][j] = (iter % 2 == 0) ? DEAD : EMPTY; // Mortos permanecem por 1 iteração e depois somem. 
+                }
+                else
+                    next[i][j] = EMPTY;
+                
+                if(next[i][j] == HEALTH || next[i][j] == INFECTED)
+                    living++;
+                else if(next[i][j] == DEAD)
+                    dead++;
+            }   
+        }
+
+        for(int i = 0; i < N; i++)
+        {
+            for(int j = 0; j < M; j++)
+            {
+                matrix[i][j] = next[i][j];
             }
         }
+
+        iter++;
+
+        // Condição de parada antecipada: ninguém foi alterado ou não há mais vivos. 
+        if(!flag || living == 0)
+            break;
     }
-}
 
+    int totalDeaths = 0, totalAlive = 0;
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            if(matrix[i][j] == DEAD) totalDeaths++;
+            else if(matrix[i][j] == HEALTH || matrix[i][j] == INFECTED) totalAlive++;
+        }
+    }
 
+    FILE *output = fopen("output.txt", "w");
+    fprintf(output, "Mortos: %d \n Sobreviventes: %d \n", totalDeaths, totalAlive);
+    fclose(output);
 
+    for(int i = 0; i < N; i++)
+    {
+            free(matrix[i]);
+            free(next[i]);
+    }
 
+    free(matrix);
+    free(next);
 
+    return 0;
+}   
 
 int hasContaminatingNeighbor(int **matrix, int i, int j, int N, int M)
 {
