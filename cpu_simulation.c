@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
     if(argc < 2)
     {
-        perror("You most provide a .txt file.");
+        perror("You must provide a .txt file.");
         return 1;
     }
 
