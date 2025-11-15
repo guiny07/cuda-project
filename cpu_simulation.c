@@ -28,8 +28,15 @@ int main(int argc, char **argv)
     int N, M;
     fscanf(input, "%d %d", &N, &M);
 
-    int matrix[N][M];
-    int next[N][M];
+    int **matrix = malloc(N * sizeof(int *));
+    int **next = malloc(N * sizeof(int *));
+    int **dead_age = malloc(N * sizeof(int *));
+    for(int i = 0; i < N; i++)
+    {
+        matrix[i] = malloc(M * sizeof(int));
+        next[i] = malloc(M * sizeof(int));
+        dead_age[i] = calloc(M, sizeof(int)); // Inicializa já com 0. 
+    }
 
     for(int i = 0; i < N; i++)
     {
@@ -39,6 +46,18 @@ int main(int argc, char **argv)
         }
     }
     fclose(input);
+
+    // Caso haja mortos desde a primeira matriz. 
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            if(matrix[i][j] == DEAD)
+                dead_age[i][j] = 1;
+        }
+    }
+
+
 
     srand(time(NULL));
     int max_iter = N * M; 
@@ -55,7 +74,7 @@ int main(int argc, char **argv)
             {
                 int current = matrix[i][j];
 
-                if(current = HEALTH) // Se for saudável, procura por um vizinho contaminante.
+                if(current == HEALTH) // Se for saudável, procura por um vizinho contaminante.
                 {
                     if(hasContaminatingNeighbor(matrix, i, j, N, M)) // Possui vizinho contaminante, então se torna infectado. 
                     {
@@ -65,18 +84,32 @@ int main(int argc, char **argv)
                     else // Não possui vizinho contaminante, segue saudável. 
                         next[i][j] = HEALTH;
                 }
-                else if(current = INFECTED)
+                else if(current == INFECTED)
                 {
                     int probability = rand() %  10000; 
 
                     if(probability <= 999) next[i][j] = HEALTH; // curado
                     else if(probability <= 3999) next[i][j] = INFECTED; // continua infectado
-                    else next[i][j] = DEAD; // morreu
+                    else 
+                    {    
+                        next[i][j] = DEAD; // morreu
+                        dead_age[i][j] = 1;
+                    }
                     flag = 1;
                 }
                 else if(current == DEAD)
                 {
-                    next[i][j] = (iter % 2 == 0) ? DEAD : EMPTY; // Mortos permanecem por 1 iteração e depois somem. 
+                    if(dead_age[i][j] == 1)
+                    {
+                        next[i][j] = DEAD; // Continua morto por mais uma iteração.
+                        dead_age[i][j] = 2; // Aumenta a "idade" do morto. 
+                    }
+                    else if(dead_age[i][j] == 2)
+                    {
+                        next[i][j] = EMPTY; // Morto sumiu depois de duas iterações. 
+                        dead_age[i][j] = 0; // Zera a idade dele. 
+                        flag = 1;
+                    }
                 }
                 else
                     next[i][j] = EMPTY;
