@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h> 
@@ -62,7 +63,11 @@ int main(int argc, char **argv)
     srand(time(NULL));
     int max_iter = N * M; 
     int iter = 0;
-    
+   
+    // ------------ INÍCIO DA CAPTURA DE TEMPO ------------------------------
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
     while(iter < max_iter)
     {
         int living = 0, dead = 0;
@@ -135,6 +140,13 @@ int main(int argc, char **argv)
         if(!flag || living == 0)
             break;
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    // ------------------------- FIM DA CAPTURA DE TEMPO -----------------------------------------
+    // converte para milissegundos
+    double elapsed_ms = (end.tv_sec - start.tv_sec) * 1000.0 + (end.tv_nsec - start.tv_nsec) / 1e6;
+    printf("Tempo CPU: %.3f ms\n", elapsed_ms);
 
     int totalDeaths = 0, totalAlive = 0;
     for(int i = 0; i < N; i++)
